@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 	<head>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 		<title>EventsHereNow</title>
 		<meta charset="UTF-8">
 		<!-- Latest compiled and minified CSS -->
@@ -45,9 +46,19 @@
 					<ul class="nav navbar-nav navbar-right">
 						<button type="button" class="btn btn-default navbar-btn">Sign in</button>
 					</ul>
-				</div><!-- /.navbar-collapse -->
-			</div><!-- /.container-fluid -->
-		</nav>
-		<script src="assets/js/events.js"></script>
-	</body>
-</html>
+					</div><!-- /.navbar-collapse -->
+					</div><!-- /.container-fluid -->
+				</nav>
+				<div class="container">
+					<div class="row">
+						<div id="eventDisplay" class="col-md-8"></div>
+						<div id="map" class="col-md-4"></div>
+					</div>
+				</div>
+				
+				<script async defer
+				src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPLB8vyw8VUD3I_AxDj2x6nhXYoQekA7A&callback=initMap">
+				</script>
+				<script src="assets/js/events.js"></script>
+			</body>
+		</html>
