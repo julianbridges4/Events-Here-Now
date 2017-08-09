@@ -56,13 +56,25 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
     infoWindow.open(map);
 }
 
-function eventObject() {
-  
-  var queryUrl = "https://api.eventful.com/rest/events/search?app_key=RDpX8hD4VzsNsP63&keywords=books"
-  console.log(queryUrl)
-      $.ajax({url: queryUrl, success: function(result){
-        console.log(result);
-       }});
+//uses a json p callback ; 
 
-}
-eventObject();
+   var oArgs = {
+
+      app_key: "RDpX8hD4VzsNsP63",
+
+      q: "music",
+
+      where: "San Diego", 
+
+      page_size: 5,
+
+      sort_order: "popularity",
+
+   };
+
+   EVDB.API.call("/events/search", oArgs, function(oData) {
+
+      // Note: this relies on the custom toString() methods below
+      console.log(oData);
+
+    });
