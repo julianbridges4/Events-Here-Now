@@ -1,15 +1,23 @@
-/*     Optional: Makes the sample page fill the window.
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }*/
-
-  .row {
+#mainRow {
     height: 80vh;
-  }
+}
 
-   #map {
+#map {
       height: 100%;
-      }
+}
+
+#eventRow {
+   height: 80vh; /* or any value */
+   overflow-y: auto;
+}
+
+.event {
+
+}
+
+
+.eventImg {
+  width: 100%;  
+}
+
   

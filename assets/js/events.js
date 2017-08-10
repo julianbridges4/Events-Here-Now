@@ -75,6 +75,45 @@ function handleLocationError(browserHasGeolocation, infoWindow, pos) {
    EVDB.API.call("/events/search", oArgs, function(oData) {
 
       // Note: this relies on the custom toString() methods below
-      console.log(oData);
+      console.log(oData.events.event[0]);
 
     });
+
+
+
+$.ajax({
+  type:"GET",
+  url:"https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3",
+  async:true,
+  dataType: "json",
+  success: function(json) {
+    console.log(json)
+    
+              for(i = 0; i < json._embedded.events.length; i++){
+                var eventObj = json._embedded.events;
+                var currentEvent = eventObj[i]
+                var eventBox = $("<div>").addClass("col-md-4 event");
+                var name = currentEvent.name;
+                var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
+                var info; 
+                $("#eventRow").append(eventBox);
+
+                // $(eventBox).append(name, image, "<br>");
+
+                if(i % 3 === 0 || i === 0 ){
+                  var displayRow = $("<div>").addClass("row displayRow");
+                  $("#eventRow").append(displayRow);
+                  $(displayRow).append(eventBox);
+                  $(eventBox).append(name, image, "<br>");
+                } else {
+                  $(".displayRow").last().append(eventBox);
+                  $(eventBox).append(name, image, "<br>");
+                }
+              }
+              // Parse the response.
+              // Do other things.
+           },
+  error: function(xhr, status, err) {
+              // This time, we do not end up here!
+           }
+});
