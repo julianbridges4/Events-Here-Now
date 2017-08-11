@@ -120,13 +120,13 @@ $.ajax({
             var name = $("<h5>").text(currentEvent.name).addClass("text-center");
             var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
             var info;
-            $("#eventRow").append(eventBox);
+            $("#eventDisplay").append(eventBox);
 
             // $(eventBox).append(name, image, "<br>");
 
             if (i % 3 === 0 || i === 0) {
                 var displayRow = $("<div>").addClass("row displayRow");
-                $("#eventRow").append(displayRow);
+                $("#eventDisplay").append(displayRow);
                 $(displayRow).append(eventBox);
                 $(eventBox).append(image, name, "<br>");
             } else {
@@ -198,6 +198,18 @@ function changeCategory() {
   $(".category").html(chosenCategory);
   $(".category").append(caret);
 }
+
+function registerUser() {
+  var userEmail = $("#inputEmail").val().trim();
+  var userPassword = $("inputPassword").val().trim();
+  firebase.auth().signInWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+  // Handle Errors here.
+  var errorCode = error.code;
+  var errorMessage = error.message;
+  // ...
+});
+}
+$("#submitLogin").on("click", registerUser);
 
 $("#submit").on("click", generateQuery);
 $(".categoryOption").on("click", changeCategory)

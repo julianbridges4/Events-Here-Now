@@ -6,7 +6,7 @@
       height: 100%;
 }
 
-#eventRow {
+#eventDisplay {
    height: 80vh; /* or any value */
    overflow-y: auto;
 }
