@@ -271,7 +271,7 @@ function generateQuery() {
                 var eventBox = $("<div>").addClass("col-md-4 event");
                 var name = $("<h5>").text(currentEvent.name).addClass("text-center");
                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
-                var info;
+                var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventRow").append(eventBox);
 
                 // $(eventBox).append(name, image, "<br>");
@@ -280,10 +280,10 @@ function generateQuery() {
                     var displayRow = $("<div>").addClass("row displayRow");
                     $("#eventDisplay").append(displayRow);
                     $(displayRow).append(eventBox);
-                    $(eventBox).append(image, name, "<br>");
+                    $(eventBox).append(image, name, eventUrl, "<br>");
                 } else {
                     $(".displayRow").last().append(eventBox);
-                    $(eventBox).append(image, name, "<br>");
+                    $(eventBox).append(image, name, eventUrl, "<br>");
                 }
 
             }
