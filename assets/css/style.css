@@ -3,11 +3,17 @@
 }
 
 #map {
-      height: 100%;
+	position: absolute;
+	right: 0px;
+	top: 52px;
+	bottom: 0px;
+    padding: 0px;
+    border-width: 0px;
+    margin: 0px;
 }
 
 #eventDisplay {
-   height: 80vh; /* or any value */
+   height: 85vh; /* or any value */
    overflow-y: auto;
 }
 
@@ -19,5 +25,3 @@
 .eventImg {
  width: 100%;
 }
-
-  
