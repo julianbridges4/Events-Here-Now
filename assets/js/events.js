@@ -15,20 +15,10 @@ var database = firebase.database();
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to
 // locate you.
-var map, infoWindow, pos, geoPoint;
+var map, infoWindow, pos, geoPoint, marker, myLatLng, lat, lng;
+var venues = [];
 
-function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: {
-            lat: -34.397,
-            lng: 150.644
-        },
-        zoom: 15
-    });
-    infoWindow = new google.maps.InfoWindow;
-
-    initAutocomplete();
-    // Try HTML5 geolocation.
+function geoLocate() {
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -37,13 +27,13 @@ function initMap() {
                 lng: position.coords.longitude
             };
 
-console.log("Pos: " + JSON.stringify(pos))
             geoPoint = JSON.stringify(pos.lat) + "," + JSON.stringify(pos.lng);
+            console.log(geoPoint)
+            lat = JSON.stringify(pos.lat);
+            lng = JSON.stringify(pos.lng);
 
-            infoWindow.setPosition(pos);
-            infoWindow.setContent('You are here');
-            infoWindow.open(map);
             map.setCenter(pos);
+
         }, function() {
             handleLocationError(true, infoWindow, map.getCenter());
         });
@@ -53,32 +43,51 @@ console.log("Pos: " + JSON.stringify(pos))
     }
 }
 
-        console.log("Geopoint: " + geoPoint)
-function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(browserHasGeolocation ?
-        'Error: The Geolocation service failed.' :
-        'Error: Your browser doesn\'t support geolocation.');
-    infoWindow.open(map);
+function initMap() {
+    geoLocate();
+
+    myLatLng = {
+        lat: lat,
+        lng: lng
+    };
+
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: myLatLng,
+        zoom: 15
+    });
+
+
+    marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: 'Hello World!'
+    });
+
+    initAutocomplete();
+
 }
+
+
+
 
 function initAutocomplete() {
     // Create the autocomplete object, restricting the search to geographical
     // location types.
     autocomplete = new google.maps.places.Autocomplete(
-        /** @type {!HTMLInputElement} */(document.getElementById('location')),
-        {types: ['geocode']});
+        /** @type {!HTMLInputElement} */
+        (document.getElementById('location')), {
+            types: ['geocode']
+        });
 
     // When the user selects an address from the dropdown, populate the address
     // fields in the form.
     autocomplete.addListener('place_changed', fillInAddress);
-  }
+}
 
 function fillInAddress() {
-  // Get the place details from the autocomplete object.
-  var place = autocomplete.getPlace();
-
-  }
+    // Get the place details from the autocomplete object.
+    var place = autocomplete.getPlace();
+}
 
 //uses a json p callback ; 
 
@@ -115,12 +124,14 @@ $.ajax({
 
         for (i = 0; i < json._embedded.events.length; i++) {
             var eventObj = json._embedded.events;
+            var eventLocation = json._embedded.events[i]._embedded.venues[0].location;
             var currentEvent = eventObj[i]
             var eventBox = $("<div>").addClass("col-md-4 event");
             var name = $("<h5>").text(currentEvent.name).addClass("text-center");
             var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
             var info;
             $("#eventDisplay").append(eventBox);
+            venues.push(eventLocation);
 
             // $(eventBox).append(name, image, "<br>");
 
@@ -134,8 +145,9 @@ $.ajax({
                 $(eventBox).append(image, name, "<br>");
             }
         }
-        // Parse the response.
-        // Do other things.
+        console.log(venues)
+            // Parse the response.
+            // Do other things.
     },
     error: function(xhr, status, err) {
         // This time, we do not end up here!
@@ -149,16 +161,19 @@ var searchInput;
 
 function generateQuery() {
     event.preventDefault();
+    changeMap();
 
-    
     searchLocation = $("#location").val();
     splitter = searchLocation.split(',');
     state = splitter[1];
-
     searchInput = $("#search").val().trim();
-    category = $(".category").text();
-        // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
-    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(',')) + "&state=" + state.trim();
+    category = $(".category").text().trim();
+
+    if (category === "Categories") {
+        category = undefined;
+    }
+    // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
+    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(','));
     console.log(queryUrl);
 
     $.ajax({
@@ -170,7 +185,7 @@ function generateQuery() {
             console.log(json)
             $("#eventDisplay").empty();
             for (i = 0; i < json._embedded.events.length; i++) {
-              console.log("for")
+                console.log("for")
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
@@ -191,6 +206,7 @@ function generateQuery() {
                     $(eventBox).append(image, name, "<br>");
                 }
             }
+
             // Parse the response.
             // Do other things.
         },
@@ -201,10 +217,58 @@ function generateQuery() {
 }
 
 function changeCategory() {
-  var caret = $("<span class='caret'></span>")
-  var chosenCategory = $(this).text();
-  $(".category").html(chosenCategory);
-  $(".category").append(caret);
+    var caret = $("<span class='caret'></span>")
+    var chosenCategory = $(this).text();
+    $(".category").html(chosenCategory);
+    $(".category").append(caret);
+}
+
+function changeMap() {
+    alert("changeMap")
+    event.preventDefault();
+
+    var address = $("#location").val().trim();
+
+
+    if (address === "") {
+        address = "Raleigh, NC"
+    }
+    console.log(address)
+        // var address = 'Raleigh, NC';
+
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({
+        'address': address
+    }, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+            var Lat = results[0].geometry.location.lat();
+            var Lng = results[0].geometry.location.lng();
+            var myOptions = {
+                zoom: 11,
+                center: new google.maps.LatLng(Lat, Lng)
+            };
+            
+            var map = new google.maps.Map(
+                document.getElementById("map"), myOptions);
+            
+             for(i = 0; i < 10; i++) {
+              console.log(venues[i].longitude);
+              var marker =  new google.maps.Marker({
+                position: new google.maps.LatLng(venues[i].latitude,venues[i].longitude),
+                map: map,
+              });
+              console.log(marker.position)
+             }
+
+            // var marker = new google.maps.Marker({
+            //     position: new google.maps.LatLng(Lat + .1, Lng + .1),
+            //     map: map,
+            //     title: 'Hello World!'
+            // });
+        } else {
+            alert("Something got wrong " + status);
+        }
+    });
 }
 
 
