@@ -20,4 +20,11 @@
   width: 100%;  
 }
 
-  
+#createUser-form {
+	max-width: 500px;
+	margin: 0 auto;
+  }
+
+ .form-signin {
+ 	padding: 20px;
+ }

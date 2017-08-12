@@ -11,6 +11,86 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
+function registerUser() {
+  event.preventDefault(); 
+  var userEmail = $("#inputEmail").val().trim();
+  var userPassword = $("#inputPassword").val().trim();
+  console.log(typeof userEmail); 
+  console.log(typeof userPassword); 
+  firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+    // Handle Errors here.
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    // ...
+  });
+  $("#inputEmail").val(""); 
+  $("#inputPassword").val("");
+}
+//this creates a login and password for a user
+$("#submitLogin").on("click", registerUser);
+
+var user = firebase.auth().currentUser;
+console.log(user);
+
+//replace sign in button with a signout button
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    console.log("signed in"); 
+
+  
+  } else {
+    console.log("not signed in");
+  }
+});
+
+// function for an exisitng user to sign in 
+function signInUser() {
+    event.preventDefault();
+    var existingEmail = $("#existingEmail").val().trim(); 
+    var existingPassword = $("#existingPassword").val().trim(); 
+    console.log(existingPassword);
+    console.log(typeof existingPassword); 
+    console.log(typeof userPassword); 
+
+    firebase.auth().signInWithEmailAndPassword(existingEmail, existingPassword).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorCode); 
+        console.log(errorMessage);
+        
+        $("#sign-in-form").append("username or password incorrect");
+        if (user != null) {
+          alert("correct login info!"); 
+          $('#sign-in-modal').modal('hide');
+        }
+       
+    });
+
+    console.log(user); 
+    $("#existingEmail").val(""); 
+    $("#existingPassword").val("");
+
+}
+
+//calls signInUser function for exisitng users
+$("#existingLogin").on("click", signInUser); 
+
+// function to log out of the account
+function logout() {
+  firebase.auth().signOut().then(function() {
+    console.log("signout successfull");
+    // Sign-out successful.
+  }).catch(function(error) {
+    console.log("signout not successful");
+    // An error happened.
+  });
+}
+
+$("#logout").on("click", logout);
+
+
+
 // Note: This example requires that you consent to location sharing when
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to
@@ -117,3 +197,11 @@ $.ajax({
               // This time, we do not end up here!
            }
 });
+
+
+
+
+
+
+
+
