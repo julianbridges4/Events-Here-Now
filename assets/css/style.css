@@ -3,16 +3,22 @@
 }
 
 #map {
-      height: 100%;
+	position: absolute;
+	right: 0px;
+	top: 52px;
+	bottom: 0px;
+    padding: 0px;
+    border-width: 0px;
+    margin: 0px;
 }
 
-#eventRow {
-   height: 80vh; /* or any value */
+#eventDisplay {
+   height: 85vh; /* or any value */
    overflow-y: auto;
 }
 
 .event {
-
+  margin-bottom: 20px;
 }
 
 
@@ -28,3 +34,4 @@
  .form-signin {
  	padding: 20px;
  }
+
