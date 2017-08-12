@@ -66,7 +66,7 @@ function initAutocomplete() {
     // Create the autocomplete object, restricting the search to geographical
     // location types.
     autocomplete = new google.maps.places.Autocomplete(
-        /** @type {!HTMLInputElement} */(document.getElementById('search')),
+        /** @type {!HTMLInputElement} */(document.getElementById('location')),
         {types: ['geocode']});
 
     // When the user selects an address from the dropdown, populate the address
@@ -150,8 +150,15 @@ var searchInput;
 function generateQuery() {
     event.preventDefault();
 
+    
+    searchLocation = $("#location").val();
+    splitter = searchLocation.split(',');
+    state = splitter[1];
+
     searchInput = $("#search").val().trim();
-    queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
+    category = $(".category").text();
+        // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
+    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(',')) + "&state=" + state.trim();
     console.log(queryUrl);
 
     $.ajax({
@@ -161,8 +168,9 @@ function generateQuery() {
         dataType: "json",
         success: function(json) {
             console.log(json)
-            $("#eventRow").empty();
+            $("#eventDisplay").empty();
             for (i = 0; i < json._embedded.events.length; i++) {
+              console.log("for")
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
@@ -175,7 +183,7 @@ function generateQuery() {
 
                 if (i % 3 === 0 || i === 0) {
                     var displayRow = $("<div>").addClass("row displayRow");
-                    $("#eventRow").append(displayRow);
+                    $("#eventDisplay").append(displayRow);
                     $(displayRow).append(eventBox);
                     $(eventBox).append(image, name, "<br>");
                 } else {
@@ -199,17 +207,7 @@ function changeCategory() {
   $(".category").append(caret);
 }
 
-function registerUser() {
-  var userEmail = $("#inputEmail").val().trim();
-  var userPassword = $("inputPassword").val().trim();
-  firebase.auth().signInWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
-  // Handle Errors here.
-  var errorCode = error.code;
-  var errorMessage = error.message;
-  // ...
-});
-}
-$("#submitLogin").on("click", registerUser);
+
 
 $("#submit").on("click", generateQuery);
 $(".categoryOption").on("click", changeCategory)
