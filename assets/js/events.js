@@ -12,19 +12,19 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 function registerUser() {
-  event.preventDefault(); 
-  var userEmail = $("#inputEmail").val().trim();
-  var userPassword = $("#inputPassword").val().trim();
-  console.log(typeof userEmail); 
-  console.log(typeof userPassword); 
-  firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
-    // Handle Errors here.
-    var errorCode = error.code;
-    var errorMessage = error.message;
-    // ...
-  });
-  $("#inputEmail").val(""); 
-  $("#inputPassword").val("");
+    event.preventDefault();
+    var userEmail = $("#inputEmail").val().trim();
+    var userPassword = $("#inputPassword").val().trim();
+    console.log(typeof userEmail);
+    console.log(typeof userPassword);
+    firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // ...
+    });
+    $("#inputEmail").val("");
+    $("#inputPassword").val("");
 }
 //this creates a login and password for a user
 $("#submitLogin").on("click", registerUser);
@@ -34,57 +34,57 @@ console.log(user);
 
 //replace sign in button with a signout button
 firebase.auth().onAuthStateChanged(function(user) {
-  if (user) {
-    console.log("signed in"); 
+    if (user) {
+        console.log("signed in");
 
-  
-  } else {
-    console.log("not signed in");
-  }
+
+    } else {
+        console.log("not signed in");
+    }
 });
 
 // function for an exisitng user to sign in 
 function signInUser() {
     event.preventDefault();
-    var existingEmail = $("#existingEmail").val().trim(); 
-    var existingPassword = $("#existingPassword").val().trim(); 
+    var existingEmail = $("#existingEmail").val().trim();
+    var existingPassword = $("#existingPassword").val().trim();
     console.log(existingPassword);
-    console.log(typeof existingPassword); 
-    console.log(typeof userPassword); 
+    console.log(typeof existingPassword);
+    console.log(typeof userPassword);
 
     firebase.auth().signInWithEmailAndPassword(existingEmail, existingPassword).catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
-        console.log(errorCode); 
+        console.log(errorCode);
         console.log(errorMessage);
-        
+
         $("#sign-in-form").append("username or password incorrect");
         if (user != null) {
-          alert("correct login info!"); 
-          $('#sign-in-modal').modal('hide');
+            alert("correct login info!");
+            $('#sign-in-modal').modal('hide');
         }
-       
+
     });
 
-    console.log(user); 
-    $("#existingEmail").val(""); 
+    console.log(user);
+    $("#existingEmail").val("");
     $("#existingPassword").val("");
 
 }
 
 //calls signInUser function for exisitng users
-$("#existingLogin").on("click", signInUser); 
+$("#existingLogin").on("click", signInUser);
 
 // function to log out of the account
 function logout() {
-  firebase.auth().signOut().then(function() {
-    console.log("signout successfull");
-    // Sign-out successful.
-  }).catch(function(error) {
-    console.log("signout not successful");
-    // An error happened.
-  });
+    firebase.auth().signOut().then(function() {
+        console.log("signout successfull");
+        // Sign-out successful.
+    }).catch(function(error) {
+        console.log("signout not successful");
+        // An error happened.
+    });
 }
 
 $("#logout").on("click", logout);
@@ -95,7 +95,7 @@ $("#logout").on("click", logout);
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to
 // locate you.
-var map, infoWindow, pos, geoPoint, marker, myLatLng, lat, lng;
+var map, pos, geoPoint, myLatLng, lat, lng;
 var venues = [];
 
 function geoLocate() {
@@ -108,11 +108,10 @@ function geoLocate() {
             };
 
             geoPoint = JSON.stringify(pos.lat) + "," + JSON.stringify(pos.lng);
-            console.log(geoPoint)
+            localStorage.setItem("geoPoint", geoPoint);
+            console.log("Geopoint: " + geoPoint)
             lat = JSON.stringify(pos.lat);
             lng = JSON.stringify(pos.lng);
-
-            map.setCenter(pos);
 
         }, function() {
             handleLocationError(true, infoWindow, map.getCenter());
@@ -126,29 +125,22 @@ function geoLocate() {
 function initMap() {
     geoLocate();
 
-    myLatLng = {
-        lat: lat,
-        lng: lng
-    };
+    var split = localStorage.getItem("geoPoint").split(',');
+    var lattitude = split[0];
+    var longitude = split[1];
+    var myLatLng = {
+        lat: parseFloat(lattitude),
+        lng: parseFloat(longitude)
+    }
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: myLatLng,
         zoom: 15
     });
 
-
-    marker = new google.maps.Marker({
-        position: myLatLng,
-        map: map,
-        title: 'Hello World!'
-    });
-
     initAutocomplete();
 
 }
-
-
-
 
 function initAutocomplete() {
     // Create the autocomplete object, restricting the search to geographical
@@ -186,53 +178,52 @@ var oArgs = {
 };
 
 EVDB.API.call("/events/search", oArgs, function(oData) {
-
     // Note: this relies on the custom toString() methods below
-    console.log(oData.events.event[0]);
-
 });
 
+function geolocateQuery() {
+
+    var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?geoPoint=" + localStorage.getItem("geoPoint") + "&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
+    $.ajax({
+        type: "GET",
+        url: queryUrl,
+        async: true,
+        dataType: "json",
+        success: function(json) {
+            console.log(json)
+
+            for (i = 0; i < json._embedded.events.length; i++) {
+                var eventObj = json._embedded.events;
+                var currentEvent = eventObj[i]
+                var eventBox = $("<div>").addClass("col-md-4 event");
+                var name = $("<h5>").text(currentEvent.name).addClass("text-center");
+                var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
+                var info;
+                $("#eventDisplay").append(eventBox);
 
 
-$.ajax({
-    type: "GET",
-    url: "https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3",
-    async: true,
-    dataType: "json",
-    success: function(json) {
-        console.log(json)
+                // $(eventBox).append(name, image, "<br>");
 
-        for (i = 0; i < json._embedded.events.length; i++) {
-            var eventObj = json._embedded.events;
-            var eventLocation = json._embedded.events[i]._embedded.venues[0].location;
-            var currentEvent = eventObj[i]
-            var eventBox = $("<div>").addClass("col-md-4 event");
-            var name = $("<h5>").text(currentEvent.name).addClass("text-center");
-            var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
-            var info;
-            $("#eventDisplay").append(eventBox);
-            venues.push(eventLocation);
-
-            // $(eventBox).append(name, image, "<br>");
-
-            if (i % 3 === 0 || i === 0) {
-                var displayRow = $("<div>").addClass("row displayRow");
-                $("#eventDisplay").append(displayRow);
-                $(displayRow).append(eventBox);
-                $(eventBox).append(image, name, "<br>");
-            } else {
-                $(".displayRow").last().append(eventBox);
-                $(eventBox).append(image, name, "<br>");
+                if (i % 3 === 0 || i === 0) {
+                    var displayRow = $("<div>").addClass("row displayRow");
+                    $("#eventDisplay").append(displayRow);
+                    $(displayRow).append(eventBox);
+                    $(eventBox).append(image, name, "<br>");
+                } else {
+                    $(".displayRow").last().append(eventBox);
+                    $(eventBox).append(image, name, "<br>");
+                }
             }
-        }
-        console.log(venues)
             // Parse the response.
             // Do other things.
-    },
-    error: function(xhr, status, err) {
-        // This time, we do not end up here!
-    }
-});
+        },
+        error: function(xhr, status, err) {
+            // This time, we do not end up here!
+        }
+    });
+}
+
+
 
 var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
 var rootUrl = "https://app.ticketmaster.com/discovery/v2/events.json?countryCode=US&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
@@ -254,18 +245,19 @@ function generateQuery() {
     }
     // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
     queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(','));
-    console.log(queryUrl);
-
+    console.log("SearchQuery: " + queryUrl)
     $.ajax({
         type: "GET",
         url: queryUrl,
         async: true,
         dataType: "json",
         success: function(json) {
-            console.log(json)
+
             $("#eventDisplay").empty();
             for (i = 0; i < json._embedded.events.length; i++) {
-                console.log("for")
+                var eventLocation = json._embedded.events[i]._embedded.venues[0].location
+
+                
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
@@ -273,6 +265,27 @@ function generateQuery() {
                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventRow").append(eventBox);
+
+                // if(i < 3) {
+                    var venueLatLng = {
+                    lat: eventLocation.latitude,
+                    lng: eventLocation.longitude
+                };
+                console.log("VenueLatLng: " + JSON.stringify(venueLatLng))
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: parseFloat(eventLocation.latitude),
+                            lng: parseFloat(eventLocation.longitude)
+                        },
+                        title: currentEvent.name
+                    });
+                    marker.setMap(map);
+                // }
+                    
+                
+
+
+
 
                 // $(eventBox).append(name, image, "<br>");
 
@@ -285,7 +298,6 @@ function generateQuery() {
                     $(".displayRow").last().append(eventBox);
                     $(eventBox).append(image, name, eventUrl, "<br>");
                 }
-
             }
 
             // Parse the response.
@@ -305,17 +317,12 @@ function changeCategory() {
 }
 
 function changeMap() {
-    alert("changeMap")
     event.preventDefault();
 
     var address = $("#location").val().trim();
-
-
     if (address === "") {
         address = "Raleigh, NC"
     }
-    console.log(address)
-        // var address = 'Raleigh, NC';
 
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({
@@ -325,35 +332,27 @@ function changeMap() {
             var Lat = results[0].geometry.location.lat();
             var Lng = results[0].geometry.location.lng();
             var myOptions = {
-                zoom: 11,
+                zoom: 10,
                 center: new google.maps.LatLng(Lat, Lng)
             };
-            
-            var map = new google.maps.Map(
-                document.getElementById("map"), myOptions);
-            
-             for(i = 0; i < 10; i++) {
-              console.log(venues[i].longitude);
-              var marker =  new google.maps.Marker({
-                position: new google.maps.LatLng(venues[i].latitude,venues[i].longitude),
-                map: map,
-              });
-              console.log(marker.position)
-             }
 
-            // var marker = new google.maps.Marker({
-            //     position: new google.maps.LatLng(Lat + .1, Lng + .1),
-            //     map: map,
-            //     title: 'Hello World!'
-            // });
+            map = new google.maps.Map(
+                document.getElementById("map"), myOptions);
+
+            // Need to create one for each venue
+
         } else {
             alert("Something got wrong " + status);
         }
     });
+
+
 }
 
+$(document).ready(function() {
+    $(window).on("load"), geolocateQuery();
 
+    $("#submit").on("click", generateQuery);
+    $(".categoryOption").on("click", changeCategory);
 
-$("#submit").on("click", generateQuery);
-$(".categoryOption").on("click", changeCategory)
-
+});
