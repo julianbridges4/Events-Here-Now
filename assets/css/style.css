@@ -2,19 +2,31 @@
   background: #4e5660;
 }
 
-.navbar-default .navbar-brand {
+#brand {
   color: #eee;
+}
+
+#brand:hover {
+    color: #b8bdc4;
 }
 
 #mainRow {
     height: 80vh;
 }
 
+.categoryHeader {
+  color: #eee;
+}
+
+.categoryHeader:active {
+  color: #4e5660;
+}
+
 #map {
-	position: absolute;
-	right: 0px;
-	top: 52px;
-	bottom: 0px;
+    position: absolute;
+    right: 0px;
+    top: 52px;
+    bottom: 0px;
     padding: 0px;
     border-width: 0px;
     margin: 0px;
@@ -32,17 +44,18 @@
 }
 
 .eventImg {
-  width: 100%;  
+  width:  100%;
+  height: 140px;
 }
 
 #createUser-form {
-	max-width: 500px;
-	margin: 0 auto;
-  }
+    max-width: 500px;
+    margin: 0 auto;
+}
 
- .form-signin {
- 	padding: 20px;
- }
+.form-signin {
+    padding: 20px;
+}
 
 .footer {
   text-align: center;
