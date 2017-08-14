@@ -11,20 +11,23 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 function registerUser() {
-    event.preventDefault();
-    var userEmail = $("#inputEmail").val().trim();
-    var userPassword = $("#inputPassword").val().trim();
-    console.log(typeof userEmail);
-    console.log(typeof userPassword);
-    firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // ...
-    });
-    $("#inputEmail").val("");
-    $("#inputPassword").val("");
+
+  event.preventDefault(); 
+  var userEmail = $("#inputEmail").val().trim();
+  var userPassword = $("#inputPassword").val().trim();
+  console.log(typeof userEmail); 
+  console.log(typeof userPassword); 
+  firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+    // Handle Errors here.
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    // ...
+  });
+  $("#inputEmail").val(""); 
+  $("#inputPassword").val("");
+
 }
+
 //this creates a login and password for a user
 $("#submitLogin").on("click", registerUser);
 var user = firebase.auth().currentUser;
@@ -60,6 +63,8 @@ function signInUser() {
     console.log(user);
     $("#existingEmail").val("");
     $("#existingPassword").val("");
+    alert("correct login info!"); 
+    $('#sign-in-modal').modal('hide');
 }
 //calls signInUser function for exisitng users
 $("#existingLogin").on("click", signInUser);
@@ -74,6 +79,78 @@ function logout() {
     });
 }
 $("#logout").on("click", logout);
+
+function sendEmailVerification() {
+      // [START sendemailverification]
+      firebase.auth().currentUser.sendEmailVerification().then(function() {
+        // Email Verification sent!
+        // [START_EXCLUDE]
+        console.log('Email Verification Sent!');
+        // [END_EXCLUDE]
+      });
+      // [END sendemailverification]
+    }
+
+
+ firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var displayName = user.displayName;
+      var email = user.email;
+      var emailVerified = user.emailVerified;
+      var isAnonymous = user.isAnonymous;
+      var uid = user.uid;
+      var providerData = user.providerData;
+      console.log(displayName, email, uid); 
+    } else {
+      console.log("user not signed in");
+    }
+
+  });
+
+
+// function googleSignIn() {
+ 
+//         var provider = new firebase.auth.GoogleAuthProvider();
+
+//         provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+
+//         firebase.auth().signInWithRedirect(provider);
+
+//         firebase.auth().getRedirectResult().then(function(result) {
+//         if (result.credential) {
+//           // This gives you a Google Access Token. You can use it to access the Google API.
+//           var token = result.credential.accessToken;
+//           // ...
+//         }
+//         // The signed-in user info.
+//         var user = result.user;
+//       }).catch(function(error) {
+//         // Handle Errors here.
+//         var errorCode = error.code;
+//         var errorMessage = error.message;
+//         // The email of the user's account used.
+//         var email = error.email;
+//         // The firebase.auth.AuthCredential type that was used.
+//         var credential = error.credential;
+//         // ...
+//       });  
+
+// }
+
+//   $("#googleSignIn").on("click", googleSignIn); 
+
+$("#submit").on("click", function() {
+    var lastSearchItem = $("#search").val().trim(); 
+    var lastLocation = $("#location").val().trim(); 
+
+
+    database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
+    lastSearchItem: lastSearchItem,
+    UID: firebase.auth().currentUser.uid,
+    lastLocation: lastLocation
+  })
+})
 // Note: This example requires that you consent to location sharing when
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to
