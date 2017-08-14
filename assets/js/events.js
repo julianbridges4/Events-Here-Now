@@ -12,36 +12,29 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 function registerUser() {
-    event.preventDefault();
-    var userEmail = $("#inputEmail").val().trim();
-    var userPassword = $("#inputPassword").val().trim();
-    console.log(typeof userEmail);
-    console.log(typeof userPassword);
-    firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // ...
-    });
-    $("#inputEmail").val("");
-    $("#inputPassword").val("");
+
+  event.preventDefault(); 
+  var userEmail = $("#inputEmail").val().trim();
+  var userPassword = $("#inputPassword").val().trim();
+  console.log(typeof userEmail); 
+  console.log(typeof userPassword); 
+  firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+    // Handle Errors here.
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    // ...
+  });
+  $("#inputEmail").val(""); 
+  $("#inputPassword").val("");
+
 }
+
+
 //this creates a login and password for a user
 $("#submitLogin").on("click", registerUser);
 
 var user = firebase.auth().currentUser;
-console.log(user);
 
-//replace sign in button with a signout button
-firebase.auth().onAuthStateChanged(function(user) {
-    if (user) {
-        console.log("signed in");
-
-
-    } else {
-        console.log("not signed in");
-    }
-});
 
 // function for an exisitng user to sign in 
 function signInUser() {
@@ -60,17 +53,15 @@ function signInUser() {
         console.log(errorMessage);
 
         $("#sign-in-form").append("username or password incorrect");
-        if (user != null) {
-            alert("correct login info!");
-            $('#sign-in-modal').modal('hide');
-        }
-
     });
 
-    console.log(user);
-    $("#existingEmail").val("");
+   
+    $("#existingEmail").val(""); 
     $("#existingPassword").val("");
 
+    alert("correct login info!"); 
+    $('#sign-in-modal').modal('hide');
+   
 }
 
 //calls signInUser function for exisitng users
@@ -88,6 +79,80 @@ function logout() {
 }
 
 $("#logout").on("click", logout);
+
+
+function sendEmailVerification() {
+      // [START sendemailverification]
+      firebase.auth().currentUser.sendEmailVerification().then(function() {
+        // Email Verification sent!
+        // [START_EXCLUDE]
+        console.log('Email Verification Sent!');
+        // [END_EXCLUDE]
+      });
+      // [END sendemailverification]
+    }
+
+
+ firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var displayName = user.displayName;
+      var email = user.email;
+      var emailVerified = user.emailVerified;
+      var isAnonymous = user.isAnonymous;
+      var uid = user.uid;
+      var providerData = user.providerData;
+      console.log(displayName, email, uid); 
+    } else {
+      console.log("user not signed in");
+    }
+
+  });
+
+
+// function googleSignIn() {
+ 
+//         var provider = new firebase.auth.GoogleAuthProvider();
+
+//         provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+
+//         firebase.auth().signInWithRedirect(provider);
+
+//         firebase.auth().getRedirectResult().then(function(result) {
+//         if (result.credential) {
+//           // This gives you a Google Access Token. You can use it to access the Google API.
+//           var token = result.credential.accessToken;
+//           // ...
+//         }
+//         // The signed-in user info.
+//         var user = result.user;
+//       }).catch(function(error) {
+//         // Handle Errors here.
+//         var errorCode = error.code;
+//         var errorMessage = error.message;
+//         // The email of the user's account used.
+//         var email = error.email;
+//         // The firebase.auth.AuthCredential type that was used.
+//         var credential = error.credential;
+//         // ...
+//       });  
+
+// }
+
+//   $("#googleSignIn").on("click", googleSignIn); 
+
+$("#submit").on("click", function() {
+    var lastSearchItem = $("#search").val().trim(); 
+    var lastLocation = $("#location").val().trim(); 
+
+
+    database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
+    lastSearchItem: lastSearchItem,
+    UID: firebase.auth().currentUser.uid,
+    lastLocation: lastLocation
+  })
+})
+
 
 
 
