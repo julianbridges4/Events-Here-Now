@@ -8,66 +8,77 @@ var config = {
     messagingSenderId: "762881140092"
 };
 firebase.initializeApp(config);
+
 var database = firebase.database();
+var user = firebase.auth().currentUser;
+
 
 function registerUser() {
-
   event.preventDefault(); 
   var userEmail = $("#inputEmail").val().trim();
   var userPassword = $("#inputPassword").val().trim();
-  console.log(typeof userEmail); 
-  console.log(typeof userPassword); 
-  firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+
+  if(userPassword.length < 8) {
+    $("#newUserError").text("Please enter a password over 8 characters");
+    return; 
+  }else{
+      firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
     // Handle Errors here.
     var errorCode = error.code;
     var errorMessage = error.message;
-    // ...
+    
+    $("#newUserError").text(errorMessage); 
+    console.log(errorMessage); 
   });
+  $("#newUserError").text(""); 
   $("#inputEmail").val(""); 
   $("#inputPassword").val("");
-
+  window.location.replace("index.html");
+  sendEmailVerification();
+  }
 }
 
-//this creates a login and password for a user
+//this creates a login and password for a user 
 $("#submitLogin").on("click", registerUser);
-var user = firebase.auth().currentUser;
-console.log(user);
-//replace sign in button with a signout button
-firebase.auth().onAuthStateChanged(function(user) {
-    if (user) {
-        console.log("signed in");
-    } else {
-        console.log("not signed in");
-    }
-});
+
+
+
 // function for an exisitng user to sign in 
 function signInUser() {
     event.preventDefault();
     var existingEmail = $("#existingEmail").val().trim();
     var existingPassword = $("#existingPassword").val().trim();
-    console.log(existingPassword);
-    console.log(typeof existingPassword);
-    console.log(typeof userPassword);
+
     firebase.auth().signInWithEmailAndPassword(existingEmail, existingPassword).catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
+
+        if (errorCode == 'auth/invalid-email') {
+          $("#errorMessage").text(errorMessage);
+        } else if (errorCode == 'auth/user-not-found') {
+          $("#errorMessage").text(errorMessage);
+        }
+
+        console.log(error);
         console.log(errorCode);
         console.log(errorMessage);
+
         $("#sign-in-form").append("username or password incorrect");
-        if (user != null) {
-            alert("correct login info!");
-            $('#sign-in-modal').modal('hide');
-        }
     });
-    console.log(user);
+
     $("#existingEmail").val("");
-    $("#existingPassword").val("");
-    alert("correct login info!"); 
-    $('#sign-in-modal').modal('hide');
+    $("#existingPassword").val(""); 
+    
 }
+
+$("#closeModal").on("click", function() {
+  $('#sign-in-modal').modal('hide');
+})
+
 //calls signInUser function for exisitng users
 $("#existingLogin").on("click", signInUser);
+
 // function to log out of the account
 function logout() {
     firebase.auth().signOut().then(function() {
@@ -78,6 +89,7 @@ function logout() {
         // An error happened.
     });
 }
+//calls logout function upon clicking on logout button
 $("#logout").on("click", logout);
 
 function sendEmailVerification() {
@@ -91,7 +103,7 @@ function sendEmailVerification() {
       // [END sendemailverification]
     }
 
-
+//performs these functions where the state of the authorization is changed 
  firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
       // User is signed in.
@@ -101,12 +113,79 @@ function sendEmailVerification() {
       var isAnonymous = user.isAnonymous;
       var uid = user.uid;
       var providerData = user.providerData;
-      console.log(displayName, email, uid); 
+      console.log("user signed in");
+      console.log("user Email: " + email); 
+      console.log("user ID:" + uid);
+      $('#sign-in-modal').modal('hide');
+      $("#login-button").hide();
+      $("#logout").show();
+      $("#lastSearch").show();
+
+      //this stores last search data to a user specific folder on firebase
+      $("#submit").on("click", function() {
+          var lastSearchItem = $("#search").val().trim(); 
+          var lastLocation = $("#location").val().trim(); 
+
+
+          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
+          lastSearchItem: lastSearchItem,
+          UID: firebase.auth().currentUser.uid,
+          lastLocation: lastLocation
+        })
+      })
+
+      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("value", function(snapshot) {
+        var sv = snapshot.val(); 
+        console.log(sv); 
+
+          function lastMap() {
+              event.preventDefault();
+              var address = sv.lastLocation; 
+
+              var geocoder = new google.maps.Geocoder();
+              geocoder.geocode({
+                  'address': address
+              }, function(results, status) {
+                  if (status == google.maps.GeocoderStatus.OK) {
+                      var Lat = results[0].geometry.location.lat();
+                      var Lng = results[0].geometry.location.lng();
+                      var myOptions = {
+                          zoom: 10,
+                          center: new google.maps.LatLng(Lat, Lng)
+                      };
+                      map = new google.maps.Map(
+                          document.getElementById("map"), myOptions);
+                      // Need to create one for each venue
+                  } else {
+                      alert("Something got wrong " + status);
+                  }
+              });
+          }
+
+        $("#lastSearch").text(sv.lastLocation); 
+        $("#lastSearch").on("click", lastMap);
+      });
+
+
+
     } else {
       console.log("user not signed in");
+      $("#login-button").show();
+      $("#logout").hide();
+      $("#lastSearch").hide();
     }
 
   });
+
+
+ function lastCategory() {
+    var caret = $("<span class='caret'></span>");
+    var chosenCategory = $("<span>").text($(this).text()).css("color", "#eee").addClass("categoryHeader");
+    $(".category").empty();
+    $(".category").append(chosenCategory, caret);
+}
+
+
 
 
 // function googleSignIn() {
@@ -140,17 +219,13 @@ function sendEmailVerification() {
 
 //   $("#googleSignIn").on("click", googleSignIn); 
 
-$("#submit").on("click", function() {
-    var lastSearchItem = $("#search").val().trim(); 
-    var lastLocation = $("#location").val().trim(); 
+function forgotPassword() {
 
 
-    database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
-    lastSearchItem: lastSearchItem,
-    UID: firebase.auth().currentUser.uid,
-    lastLocation: lastLocation
-  })
-})
+}
+
+
+
 // Note: This example requires that you consent to location sharing when
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to

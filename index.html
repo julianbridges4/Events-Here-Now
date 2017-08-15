@@ -44,33 +44,44 @@
                             <input type="text" id="location" class="form-control" placeholder="City">
                         </div>
                         <input type="submit" id="submit" value="Search" class="btn btn-default">
+                         <button type="submit" class="btn btn-default navbar-btn" id="lastSearch">Your Last Search</button>
                     </form>
                     <ul class="nav navbar-nav navbar-right" id="loginDiv">
                     <!-- modal button for login to firebase -->
-                        <button type="button" class="btn btn-default navbar-btn" data-toggle="modal" data-target=".bs-example-modal-sm">Sign In</button>
+                        <button type="button" class="btn btn-default navbar-btn" data-toggle="modal" data-target=".bs-example-modal-sm" id="login-button">Sign In</button>
                         <!-- signout button (place holder undtil we can create this dinamically?) -->
-                        <button type="submit" class="btn btn-default" id="logout">Sign Out</button>
-                        <!-- ling for a new user to create log in -->
+                        <button type="submit" class="btn btn-default navbar-btn" id="logout">Sign Out</button>
+                        <!-- link for a new user to create log in -->
                         <a href="login.html">New User</a>
                         <!-- runs modal script for sign in  -->
                         <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal" id="sign-in-modal">
                          
                           <div class="modal-dialog modal-sm" role="document">
+
                             <div class="modal-content">
+
                               <form class="form-signin" id="sign-in-form">
+
                                     <h2 class="form-signin-heading">Sign In</h2>
+
                                     <label for="existingEmail" class="sr-only">Email Address</label>
+
                                     <input type="email" id="existingEmail" class="form-control" placeholder="Email Address" required autofocus>
+
                                     <label for="existingPassword" class="sr-only">Password</label>
+
                                     <input type="password" id="existingPassword" class="form-control" placeholder="Password" required="">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" value="remember-me">
-                                            Remember Me
-                                        </label> 
-                                    </div>
+										
+									<br>
+										
                                     <button class="btn btn-lg btn-primary btn-block" type="submit" id="existingLogin">Log In</button>
-                                    <div id="login-logout"><a href="#" id="forgotPassword">Forgot Password?</a></div>
+
+                                    <a href="#" id="forgotPassword">Forgot Password?</a>
+                                  	<br>
+                                    <button type="button" class="btn btn-default" id="closeModal">Close</button>
+									<br>
+                                    <p id="errorMessage"></p>
+
                                 </form>
                             </div>
                           </div>
