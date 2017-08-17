@@ -38,6 +38,17 @@
     height: 80vh;
 }
 
+.displayHeader {
+	text-align: center;
+	font-size: 60px;
+	margin-top: 15%;
+}
+
+.displaySubheader {
+	text-align: center;
+	font-size: 24px;
+}
+
 #map {
     position: absolute;
     right: 0px;
@@ -57,6 +68,9 @@
 
 .event {
   margin-bottom: 20px;
+  border: 2px solid #4e5660;
+  border-radius: 6px;
+  padding-top: 10px;
 }
 
 .eventImg {
