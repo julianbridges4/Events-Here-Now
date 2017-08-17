@@ -11,31 +11,34 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 var user = firebase.auth().currentUser;
+var infoWindow;
+var searchCounter = 0; 
+
 
 
 function registerUser() {
-  event.preventDefault(); 
-  var userEmail = $("#inputEmail").val().trim();
-  var userPassword = $("#inputPassword").val().trim();
+    event.preventDefault();
+    var userEmail = $("#inputEmail").val().trim();
+    var userPassword = $("#inputPassword").val().trim();
 
-  if(userPassword.length < 8) {
-    $("#newUserError").text("Please enter a password over 8 characters");
-    return; 
-  }else{
-      firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
-    // Handle Errors here.
-    var errorCode = error.code;
-    var errorMessage = error.message;
-    
-    $("#newUserError").text(errorMessage); 
-    console.log(errorMessage); 
-  });
-  $("#newUserError").text(""); 
-  $("#inputEmail").val(""); 
-  $("#inputPassword").val("");
-  window.location.replace("index.html");
-  sendEmailVerification();
-  }
+    if (userPassword.length < 8) {
+        $("#newUserError").text("Please enter a password over 8 characters");
+        return;
+    } else {
+        firebase.auth().createUserWithEmailAndPassword(userEmail, userPassword).catch(function(error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+
+            $("#newUserError").text(errorMessage);
+            console.log(errorMessage);
+        });
+        $("#newUserError").text("");
+        $("#inputEmail").val("");
+        $("#inputPassword").val("");
+        window.location.replace("index.html");
+        sendEmailVerification();
+    }
 }
 
 //this creates a login and password for a user 
@@ -55,9 +58,9 @@ function signInUser() {
         var errorMessage = error.message;
 
         if (errorCode == 'auth/invalid-email') {
-          $("#errorMessage").text(errorMessage);
+            $("#errorMessage").text(errorMessage);
         } else if (errorCode == 'auth/user-not-found') {
-          $("#errorMessage").text(errorMessage);
+            $("#errorMessage").text(errorMessage);
         }
 
         console.log(error);
@@ -68,12 +71,13 @@ function signInUser() {
     });
 
     $("#existingEmail").val("");
-    $("#existingPassword").val(""); 
-    
+    $("#existingPassword").val("");
+
 }
 
   $("#closeModal").on("click", function() {
   $('#sign-in-modal').modal('hide');
+
 })
 
 //calls signInUser function for exisitng users
@@ -93,19 +97,20 @@ function logout() {
 $("#logout").on("click", logout);
 
 function sendEmailVerification() {
-      // [START sendemailverification]
-      firebase.auth().currentUser.sendEmailVerification().then(function() {
+    // [START sendemailverification]
+    firebase.auth().currentUser.sendEmailVerification().then(function() {
         // Email Verification sent!
         // [START_EXCLUDE]
         console.log('Email Verification Sent!');
         // [END_EXCLUDE]
-      });
-      // [END sendemailverification]
-    }
+    });
+    // [END sendemailverification]
+}
 
 //performs these functions where the state of the authorization is changed 
- firebase.auth().onAuthStateChanged(function(user) {
+firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
+
       // User is signed in.
       var displayName = user.displayName;
       var email = user.email;
@@ -121,49 +126,154 @@ function sendEmailVerification() {
       $("#logout").show();
       $("#lastSearch").show();
 
+       database.ref('users/' + firebase.auth().currentUser.uid).once("value", function(snapshot) {
+         searchCounter = snapshot.val().searchNumber; 
+         console.log(snapshot.val());
+         console.log("search counter on load is:" + searchCounter);
+
+        var userSearchDirectory = 'users/' + firebase.auth().currentUser.uid + '/recentSearch/';
+
+          database.ref(userSearchDirectory + searchCounter).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+         
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch0").text(sv.searchLocation); 
+            $("#lastSearch0").on("click", recentSearch);
+           
+          });
+
+          database.ref(userSearchDirectory + (searchCounter - 1)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+           
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch1").text(sv.searchLocation); 
+            $("#lastSearch1").on("click", recentSearch);
+
+          });
+
+           database.ref(userSearchDirectory + (searchCounter - 2)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+           
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch2").text(sv.searchLocation); 
+            $("#lastSearch2").on("click", recentSearch);
+
+          });
+
+      })
+
       //this stores last search data to a user specific folder on firebase
       $("#submit").on("click", function() {
-          var lastSearchItem = $("#search").val().trim(); 
-          var lastLocation = $("#location").val().trim(); 
+          var searchItem = $("#search").val().trim(); 
+          var searchLocation = $("#location").val().trim(); 
+          searchCounter++; 
+          console.log("Search counter now: " + searchCounter); 
 
+          var userSearchDirectory = 'users/' + firebase.auth().currentUser.uid + '/recentSearch/';
 
-          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).push({
-          lastSearchItem: lastSearchItem,
-          lastLocation: lastLocation
+          database.ref(userSearchDirectory + searchCounter).update({
+          searchItem: searchItem,
+          searchLocation: searchLocation,
         })
+
+          database.ref('users/' + firebase.auth().currentUser.uid ).update({
+            searchNumber: searchCounter
+          })
+
+          database.ref(userSearchDirectory + searchCounter).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch0").text(sv.searchLocation); 
+            $("#lastSearch0").on("click", recentSearch);
+           
+          });
+
+          database.ref(userSearchDirectory + (searchCounter - 1)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch1").text(sv.searchLocation); 
+            $("#lastSearch1").on("click", recentSearch);
+
+          });
+
+           database.ref(userSearchDirectory + (searchCounter - 2)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch2").text(sv.searchLocation); 
+            $("#lastSearch2").on("click", recentSearch);
+
+          });
+
       });
 
-      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("child_added", function(snapshot) {
-        var sv = snapshot.val(); 
-        console.log(sv); 
-        var secondLastSearch = sv.
-
-        function recentSearch(event) {
-          event.preventDefault();
-          $("#location").val(sv.lastLocation); 
-          $("#search").val(sv.lastSearchItem); 
-          generateQuery();
-        }
-
-        $("#lastSearch").text(sv.lastLocation); 
-        $("#lastSearch").on("click", recentSearch);
-        $("#secondLastSearch").text();
-
-      });
 
     } else {
-      console.log("user not signed in");
-      $("#login-button").show();
-      $("#logout").hide();
-      $("#lastSearch").hide();
+        console.log("user not signed in");
+        $("#login-button").show();
+        $("#logout").hide();
+        $("#lastSearch").hide();
     }
 
-  });
+});
 
 
- function lastCategory() {
+function lastCategory() {
     var caret = $("<span class='caret'></span>");
-    var chosenCategory = $("<span>").text($(this).text()).css("color", "#eee").addClass("categoryHeader");
+    var chosenCategory = $("<span>").text($(this).text());
     $(".category").empty();
     $(".category").append(chosenCategory, caret);
 }
@@ -172,7 +282,7 @@ function sendEmailVerification() {
 
 
 // function googleSignIn() {
- 
+
 //         var provider = new firebase.auth.GoogleAuthProvider();
 
 //         provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
@@ -216,6 +326,9 @@ function forgotPassword() {
 var map, pos, geoPoint, myLatLng, lat, lng;
 var venues = [];
 
+
+
+
 function geoLocate() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -228,12 +341,7 @@ function geoLocate() {
             console.log("Geopoint: " + geoPoint)
             lat = JSON.stringify(pos.lat);
             lng = JSON.stringify(pos.lng);
-        }, function() {
-            handleLocationError(true, infoWindow, map.getCenter());
         });
-    } else {
-        // Browser doesn't support Geolocation
-        handleLocationError(false, infoWindow, map.getCenter());
     }
 }
 
@@ -248,7 +356,7 @@ function initMap() {
     }
     map = new google.maps.Map(document.getElementById('map'), {
         center: myLatLng,
-        zoom: 15
+        zoom: 13
     });
     initAutocomplete();
 }
@@ -271,16 +379,38 @@ function fillInAddress() {
     var place = autocomplete.getPlace();
 }
 //uses a json p callback ; 
-var oArgs = {
-    app_key: "RDpX8hD4VzsNsP63",
-    q: "music",
-    where: "San Diego",
-    page_size: 5,
-    sort_order: "popularity",
-};
-EVDB.API.call("/events/search", oArgs, function(oData) {
-    // Note: this relies on the custom toString() methods below
-});
+// var oArgs = {
+//     app_key: "RDpX8hD4VzsNsP63",
+//     q: "music",
+//     where: "San Diego",
+//     page_size: 5,
+//     sort_order: "popularity",
+// };
+// EVDB.API.call("/events/search", oArgs, function(oData) {
+//     // Note: this relies on the custom toString() methods below
+// });
+
+function createMarker(event) {
+
+    var eventLocation = event._embedded.venues[0].location;
+    var infowindow = new google.maps.InfoWindow();
+    var contentString = event.name;
+    var marker = new google.maps.Marker({
+        position: {
+            lat: parseFloat(eventLocation.latitude),
+            lng: parseFloat(eventLocation.longitude)
+        },
+        title: event.name
+    });
+
+    marker.setMap(map);
+    
+    google.maps.event.addListener(marker, 'click', function() {
+        infowindow.setContent(contentString);
+        infowindow.open(map, this);
+    });
+
+}
 
 function geolocateQuery() {
     var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?geoPoint=" + localStorage.getItem("geoPoint") + "&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
@@ -292,18 +422,21 @@ function geolocateQuery() {
         success: function(json) {
             console.log(json)
             for (i = 0; i < json._embedded.events.length; i++) {
+
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
-                var name = $("<h5>").text(currentEvent.name).addClass("text-center");
+                var name = $("<h4>").text(currentEvent.name);
                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
                 var venue = $("<p>").text(currentEvent._embedded.venues[0].name);
-                var address = $("<p>").text(currentEvent._embedded.venues[0].address.line1);
-                var date = $("<span>").text("Date: " + currentEvent.dates.start.localDate);
-                var time = $("<span>").text("Time: " + currentEvent.dates.start.localTime).css("margin-left", "3%");
+                var address = $("<p>").text("Address: " + currentEvent._embedded.venues[0].address.line1);
+                var date = $("<p>").text("Date: " + moment(currentEvent.dates.start.localDate, "YYYY-MM-DD").format("ddd, MMM Do YYYY"));
+                var time = $("<p>").text("Time: " + moment(currentEvent.dates.start.localTime, "HH:mm:ss").format("h:mm a"));
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventDisplay").append(eventBox);
-                // $(eventBox).append(name, image, "<br>");
+               
+                createMarker(json._embedded.events[i]);
+
                 if (i % 3 === 0 || i === 0) {
                     var displayRow = $("<div>").addClass("row displayRow");
                     $("#eventDisplay").append(displayRow);
@@ -324,21 +457,47 @@ function geolocateQuery() {
 }
 var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
 var rootUrl = "https://app.ticketmaster.com/discovery/v2/events.json?countryCode=US&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
-var searchInput;
+var searchInput, geoCodedLocation;
 
-function generateQuery() {
-    event.preventDefault();
-    changeMap();
-    searchLocation = $("#location").val();
-    splitter = searchLocation.split(',');
-    state = splitter[1];
+function clickHandler() {
+    var contentString
+    google.maps.event.addListener(marker, 'click', function() {
+
+        infowindow.setContent(contentString);
+        infowindow.open(map, this);
+    });
+}
+
+function geoPointGenerator(searchLocation) {
+    
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({
+        'address': searchLocation
+    }, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+            var Lat = results[0].geometry.location.lat();
+            var Lng = results[0].geometry.location.lng();
+            searchLocation = "" + Lat + "," + Lng + "";
+            console.log("geoCodedLocation: " + searchLocation)
+            // Need to create one for each venue
+        } else {
+            alert("Something got wrong " + status);
+        }
+    });
+
+}
+
+function ajaxRequest(geoPoint) {
+    
+    var searchLocation = $("#location").val().trim();
+
     searchInput = $("#search").val().trim();
     category = $(".category").text().trim();
     if (category === "Categories") {
         category = undefined;
     }
     // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
-    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(','));
+    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&geoPoint=" + geoPoint + "&includeLicensedContent=yes" + "&radius=25";
     console.log("SearchQuery: " + queryUrl)
     $.ajax({
         type: "GET",
@@ -349,38 +508,29 @@ function generateQuery() {
             console.log("yo")
             console.log(json)
             $("#eventDisplay").empty();
-            for (i = 0; i < json._embedded.events.length; i++) {
-                var eventLocation = json._embedded.events[i]._embedded.venues[0].location
+            if(json._embedded === undefined){
+                var noResults = $("<h2>").text("Your search - " + searchInput + " - did not match any events");
+                $("#eventDisplay").append(noResults);
+                return;
+            }
 
+            for (i = 0; i < json._embedded.events.length; i++) {
+               
+                var eventLocation = json._embedded.events[i]._embedded.venues[0].location;
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
-                var name = $("<h5>").text(currentEvent.name).addClass("text-center");
+                var name = $("<h4>").text(currentEvent.name);
                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
                 var venue = $("<p>").text(currentEvent._embedded.venues[0].name);
-                var address = $("<p>").text(currentEvent._embedded.venues[0].address.line1);
-                var date = $("<span>").text("Date: " + currentEvent.dates.start.localDate);
-                var time = $("<span>").text("Time: " + currentEvent.dates.start.localTime).css("margin-left", "3%");
+                var address = $("<p>").text("Address: " + currentEvent._embedded.venues[0].address.line1);
+                var date = $("<p>").text("Date: " + moment(currentEvent.dates.start.localDate, "YYYY-MM-DD").format("ddd, MMM Do YYYY"));
+                var time = $("<p>").text("Time: " + moment(currentEvent.dates.start.localTime, "HH:mm:ss").format("h:mm a"));
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventRow").append(eventBox);
-                // if(i < 3) {
-                var venueLatLng = {
-                    lat: eventLocation.latitude,
-                    lng: eventLocation.longitude
-                };
-                console.log("VenueLatLng: " + JSON.stringify(venueLatLng))
-                var marker = new google.maps.Marker({
-                    position: {
-                        lat: parseFloat(eventLocation.latitude),
-                        lng: parseFloat(eventLocation.longitude)
-                    },
-                    title: currentEvent.name
-                });
-                marker.setMap(map);
-                // }
 
+                 createMarker(json._embedded.events[i]);
 
-                // $(eventBox).append(name, image, "<br>");
                 if (i % 3 === 0 || i === 0) {
                     var displayRow = $("<div>").addClass("row displayRow");
                     $("#eventDisplay").append(displayRow);
@@ -391,6 +541,11 @@ function generateQuery() {
                     $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
                 }
             }
+
+               // if(json._embedded.events.length === 0){
+               //      var noResults = $("<h2>").text("No results matching " + searchInput);
+               //      $("#eventDisplay").append(noResults);
+               //  }
             // Parse the response.
             // Do other things.
         },
@@ -400,18 +555,26 @@ function generateQuery() {
     });
 }
 
+function generateQuery() {
+
+    event.preventDefault();
+    changeMap();
+    
+}
+
 function changeCategory() {
     var caret = $("<span class='caret'></span>");
-    var chosenCategory = $("<span>").text($(this).text()).css("color", "#eee").addClass("categoryHeader");
+    var chosenCategory = $("<span>").text($(this).text());
     $(".category").empty();
     $(".category").append(chosenCategory, caret);
 }
 
 function changeMap() {
+    
     event.preventDefault();
     var address = $("#location").val().trim();
     if (address === "") {
-        address = "Raleigh, NC"
+        address = "United States"
     }
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({
@@ -420,23 +583,24 @@ function changeMap() {
         if (status == google.maps.GeocoderStatus.OK) {
             var Lat = results[0].geometry.location.lat();
             var Lng = results[0].geometry.location.lng();
+            var geoPoint = "" + Lat + "," + Lng + "";
             var myOptions = {
                 zoom: 10,
                 center: new google.maps.LatLng(Lat, Lng)
             };
             map = new google.maps.Map(
                 document.getElementById("map"), myOptions);
+            ajaxRequest(geoPoint);
             // Need to create one for each venue
         } else {
             alert("Something got wrong " + status);
         }
+
     });
+
 }
 $(document).ready(function() {
-    $(window).on("load"), geolocateQuery();
+    //$(window).on("load"), geolocateQuery();
     $("#submit").on("click", generateQuery);
     $(".categoryOption").on("click", changeCategory);
-    $(".category").on("click", function() {
-        $(".categoryHeader").css("color", "#4b5159")
-    });
 });
