@@ -73,8 +73,9 @@ function signInUser() {
 
 }
 
-$("#closeModal").on("click", function() {
-    $('#sign-in-modal').modal('hide');
+  $("#closeModal").on("click", function() {
+  $('#sign-in-modal').modal('hide');
+
 })
 
 //calls signInUser function for exisitng users
@@ -107,67 +108,52 @@ function sendEmailVerification() {
 //performs these functions where the state of the authorization is changed 
 firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
-        // User is signed in.
-        var displayName = user.displayName;
-        var email = user.email;
-        var emailVerified = user.emailVerified;
-        var isAnonymous = user.isAnonymous;
-        var uid = user.uid;
-        var providerData = user.providerData;
-        console.log("user signed in");
-        console.log("user Email: " + email);
-        console.log("user ID:" + uid);
-        $('#sign-in-modal').modal('hide');
-        $("#login-button").hide();
-        $("#logout").show();
-        $("#lastSearch").show();
 
-        //this stores last search data to a user specific folder on firebase
-        $("#submit").on("click", function() {
-            var lastSearchItem = $("#search").val().trim();
-            var lastLocation = $("#location").val().trim();
+      // User is signed in.
+      var displayName = user.displayName;
+      var email = user.email;
+      var emailVerified = user.emailVerified;
+      var isAnonymous = user.isAnonymous;
+      var uid = user.uid;
+      var providerData = user.providerData;
+      console.log("user signed in");
+      console.log("user Email: " + email); 
+      console.log("user ID:" + uid);
+      $('#sign-in-modal').modal('hide');
+      $("#login-button").hide();
+      $("#logout").show();
+      $("#lastSearch").show();
+
+      //this stores last search data to a user specific folder on firebase
+      $("#submit").on("click", function() {
+          var lastSearchItem = $("#search").val().trim(); 
+          var lastLocation = $("#location").val().trim(); 
 
 
-            database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
-                lastSearchItem: lastSearchItem,
-                UID: firebase.auth().currentUser.uid,
-                lastLocation: lastLocation
-            })
+          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).push({
+          lastSearchItem: lastSearchItem,
+          lastLocation: lastLocation
         })
+      });
 
-        database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("value", function(snapshot) {
-            var sv = snapshot.val();
-            console.log(sv);
+      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("child_added", function(snapshot) {
+        var sv = snapshot.val(); 
+        console.log(sv); 
+        //var secondLastSearch = sv.
 
-            function lastMap() {
-                event.preventDefault();
-                var address = sv.lastLocation;
+        function recentSearch(event) {
+          event.preventDefault();
+          $("#location").val(sv.lastLocation); 
+          $("#search").val(sv.lastSearchItem); 
+          generateQuery();
+        }
 
-                var geocoder = new google.maps.Geocoder();
-                geocoder.geocode({
-                    'address': address
-                }, function(results, status) {
-                    if (status == google.maps.GeocoderStatus.OK) {
-                        var Lat = results[0].geometry.location.lat();
-                        var Lng = results[0].geometry.location.lng();
-                        var myOptions = {
-                            zoom: 10,
-                            center: new google.maps.LatLng(Lat, Lng)
-                        };
-                        map = new google.maps.Map(
-                            document.getElementById("map"), myOptions);
-                        // Need to create one for each venue
-                    } else {
-                        alert("Something got wrong " + status);
-                    }
-                });
-            }
-
-            $("#lastSearch").text(sv.lastLocation);
-            $("#lastSearch").on("click", lastMap);
-        });
+        $("#lastSearch").text(sv.lastLocation); 
+        $("#lastSearch").on("click", recentSearch);
+        $("#secondLastSearch").text();
 
 
+      });
 
     } else {
         console.log("user not signed in");
