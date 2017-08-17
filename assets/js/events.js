@@ -72,7 +72,7 @@ function signInUser() {
     
 }
 
-$("#closeModal").on("click", function() {
+  $("#closeModal").on("click", function() {
   $('#sign-in-modal').modal('hide');
 })
 
@@ -127,46 +127,29 @@ function sendEmailVerification() {
           var lastLocation = $("#location").val().trim(); 
 
 
-          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).update({
+          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).push({
           lastSearchItem: lastSearchItem,
-          UID: firebase.auth().currentUser.uid,
           lastLocation: lastLocation
         })
-      })
-
-      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("value", function(snapshot) {
-        var sv = snapshot.val(); 
-        console.log(sv); 
-
-          function lastMap() {
-              event.preventDefault();
-              var address = sv.lastLocation; 
-
-              var geocoder = new google.maps.Geocoder();
-              geocoder.geocode({
-                  'address': address
-              }, function(results, status) {
-                  if (status == google.maps.GeocoderStatus.OK) {
-                      var Lat = results[0].geometry.location.lat();
-                      var Lng = results[0].geometry.location.lng();
-                      var myOptions = {
-                          zoom: 10,
-                          center: new google.maps.LatLng(Lat, Lng)
-                      };
-                      map = new google.maps.Map(
-                          document.getElementById("map"), myOptions);
-                      // Need to create one for each venue
-                  } else {
-                      alert("Something got wrong " + status);
-                  }
-              });
-          }
-
-        $("#lastSearch").text(sv.lastLocation); 
-        $("#lastSearch").on("click", lastMap);
       });
 
+      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("child_added", function(snapshot) {
+        var sv = snapshot.val(); 
+        console.log(sv); 
+        var secondLastSearch = sv.
 
+        function recentSearch(event) {
+          event.preventDefault();
+          $("#location").val(sv.lastLocation); 
+          $("#search").val(sv.lastSearchItem); 
+          generateQuery();
+        }
+
+        $("#lastSearch").text(sv.lastLocation); 
+        $("#lastSearch").on("click", recentSearch);
+        $("#secondLastSearch").text();
+
+      });
 
     } else {
       console.log("user not signed in");
