@@ -203,9 +203,11 @@ firebase.auth().onAuthStateChanged(function(user) {
           searchLocation: searchLocation,
         })
 
+
           database.ref('users/' + firebase.auth().currentUser.uid ).update({
             searchNumber: searchCounter
           })
+
 
           database.ref(userSearchDirectory + searchCounter).once("value", function(snapshot) {       
             var sv = snapshot.val(); 
