@@ -181,7 +181,7 @@ firebase.auth().onAuthStateChanged(function(user) {
 
 function lastCategory() {
     var caret = $("<span class='caret'></span>");
-    var chosenCategory = $("<span>").text($(this).text()).css("color", "#eee").addClass("categoryHeader");
+    var chosenCategory = $("<span>").text($(this).text());
     $(".category").empty();
     $(".category").append(chosenCategory, caret);
 }
@@ -330,6 +330,7 @@ function geolocateQuery() {
         success: function(json) {
             console.log(json)
             for (i = 0; i < json._embedded.events.length; i++) {
+
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
                 var eventBox = $("<div>").addClass("col-md-4 event");
@@ -364,7 +365,7 @@ function geolocateQuery() {
 }
 var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
 var rootUrl = "https://app.ticketmaster.com/discovery/v2/events.json?countryCode=US&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
-var searchInput;
+var searchInput, geoCodedLocation;
 
 function clickHandler() {
     var contentString
@@ -375,19 +376,36 @@ function clickHandler() {
     });
 }
 
-function generateQuery() {
-    event.preventDefault();
-    changeMap();
-    searchLocation = $("#location").val();
-    splitter = searchLocation.split(',');
-    state = splitter[1];
+function geoPointGenerator(searchLocation) {
+    
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({
+        'address': searchLocation
+    }, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+            var Lat = results[0].geometry.location.lat();
+            var Lng = results[0].geometry.location.lng();
+            searchLocation = "" + Lat + "," + Lng + "";
+            console.log("geoCodedLocation: " + searchLocation)
+            // Need to create one for each venue
+        } else {
+            alert("Something got wrong " + status);
+        }
+    });
+
+}
+
+function ajaxRequest(geoPoint) {
+    
+    var searchLocation = $("#location").val().trim();
+
     searchInput = $("#search").val().trim();
     category = $(".category").text().trim();
     if (category === "Categories") {
         category = undefined;
     }
     // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
-    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&city=" + searchLocation.substr(0, searchLocation.indexOf(','));
+    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&geoPoint=" + geoPoint + "&includeLicensedContent=yes" + "&radius=25";
     console.log("SearchQuery: " + queryUrl)
     $.ajax({
         type: "GET",
@@ -419,7 +437,7 @@ function generateQuery() {
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventRow").append(eventBox);
 
-                createMarker(json._embedded.events[i]);
+                 createMarker(json._embedded.events[i]);
 
                 if (i % 3 === 0 || i === 0) {
                     var displayRow = $("<div>").addClass("row displayRow");
@@ -445,18 +463,26 @@ function generateQuery() {
     });
 }
 
+function generateQuery() {
+
+    event.preventDefault();
+    changeMap();
+    
+}
+
 function changeCategory() {
     var caret = $("<span class='caret'></span>");
-    var chosenCategory = $("<span>").text($(this).text()).css("color", "#eee").addClass("categoryHeader");
+    var chosenCategory = $("<span>").text($(this).text());
     $(".category").empty();
     $(".category").append(chosenCategory, caret);
 }
 
 function changeMap() {
+    
     event.preventDefault();
     var address = $("#location").val().trim();
     if (address === "") {
-        address = "Raleigh, NC"
+        address = "United States"
     }
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({
@@ -465,23 +491,24 @@ function changeMap() {
         if (status == google.maps.GeocoderStatus.OK) {
             var Lat = results[0].geometry.location.lat();
             var Lng = results[0].geometry.location.lng();
+            var geoPoint = "" + Lat + "," + Lng + "";
             var myOptions = {
                 zoom: 10,
                 center: new google.maps.LatLng(Lat, Lng)
             };
             map = new google.maps.Map(
                 document.getElementById("map"), myOptions);
+            ajaxRequest(geoPoint);
             // Need to create one for each venue
         } else {
             alert("Something got wrong " + status);
         }
+
     });
+
 }
 $(document).ready(function() {
-    $(window).on("load"), geolocateQuery();
+    //$(window).on("load"), geolocateQuery();
     $("#submit").on("click", generateQuery);
     $(".categoryOption").on("click", changeCategory);
-    $(".category").on("click", function() {
-        $(".categoryHeader").css("color", "#4b5159")
-    });
 });

@@ -6,6 +6,14 @@
 	margin: 0px;
 }
 
+.dropdown.open span {
+  color: #4e5660;
+}
+
+.dropdown span {
+  color: #eee;
+}
+
 #brand {
   color: #eee;
 }
@@ -16,14 +24,6 @@
 
 #mainRow {
     height: 80vh;
-}
-
-.categoryHeader {
-  color: #eee;
-}
-
-.categoryHeader:active {
-  color: #4e5660;
 }
 
 #map {
