@@ -291,7 +291,7 @@ function createMarker(event) {
                               
 
     var infowindow = new google.maps.InfoWindow();
-    var contentString =  "Venue: " + event._embedded.venues[0].name + "<br>" + "Event: " + event.name + "<br>" + event.distance + " Miles -- " + "<a target='_blank' href=" + "https://maps.google.co.uk/maps?saddr=" + localStorage.getItem("geoPoint") + "&daddr=" + event._embedded.venues[0].address.line1 + ">Directions to Venue</a>" + "<br>" + "<a href=" + event.url + ">" + event.url + "</a>" + "<br>" ;
+    var contentString =  "<b>Venue: </b>" + event._embedded.venues[0].name + "<br>" + "<b>Event: </b>" + event.name + "<br>" + "<b>Distance: </b>" + event.distance + " Miles -- " + "<a target='_blank' href=" + "https://maps.google.co.uk/maps?saddr=" + localStorage.getItem("geoPoint") + "&daddr=" + event._embedded.venues[0].address.line1 + ">Directions to Venue</a>" + "<br>" + "<a href=" + event.url + ">" + event.url + "</a>" + "<br>" ;
     var marker = new google.maps.Marker({
         position: {
             lat: parseFloat(eventLocation.latitude),
