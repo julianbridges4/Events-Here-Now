@@ -288,7 +288,7 @@ function createMarker(event) {
 
     var eventLocation = event._embedded.venues[0].location;
     var infowindow = new google.maps.InfoWindow();
-    var contentString = event.name;
+    var contentString = event.name + "<br>" + event._embedded.venues[0].name;
     var marker = new google.maps.Marker({
         position: {
             lat: parseFloat(eventLocation.latitude),
@@ -298,7 +298,7 @@ function createMarker(event) {
     });
 
     marker.setMap(map);
-    
+
     google.maps.event.addListener(marker, 'click', function() {
         infowindow.setContent(contentString);
         infowindow.open(map, this);
@@ -306,52 +306,52 @@ function createMarker(event) {
 
 }
 
-function geolocateQuery() {
-    var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?geoPoint=" + localStorage.getItem("geoPoint") + "&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
-    $.ajax({
-        type: "GET",
-        url: queryUrl,
-        async: true,
-        dataType: "json",
-        success: function(json) {
-            console.log(json)
-            for (i = 0; i < json._embedded.events.length; i++) {
+// function geolocateQuery() {
+//     var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?geoPoint=" + localStorage.getItem("geoPoint") + "&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
+//     $.ajax({
+//         type: "GET",
+//         url: queryUrl,
+//         async: true,
+//         dataType: "json",
+//         success: function(json) {
+//             console.log(json)
+//             for (i = 0; i < json._embedded.events.length; i++) {
 
-                var eventObj = json._embedded.events;
-                var currentEvent = eventObj[i]
-                var eventBox = $("<div>").addClass("col-md-4 event");
-                var name = $("<h4>").text(currentEvent.name);
-                var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
-                var venue = $("<p>").text(currentEvent._embedded.venues[0].name);
-                var address = $("<p>").text("Address: " + currentEvent._embedded.venues[0].address.line1);
-                var date = $("<p>").text("Date: " + moment(currentEvent.dates.start.localDate, "YYYY-MM-DD").format("ddd, MMM Do YYYY"));
-                var time = $("<p>").text("Time: " + moment(currentEvent.dates.start.localTime, "HH:mm:ss").format("h:mm a"));
-                var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
-                $("#eventDisplay").append(eventBox);
-               
-                createMarker(json._embedded.events[i]);
+//                 var eventObj = json._embedded.events;
+//                 var currentEvent = eventObj[i]
+//                 var eventBox = $("<div>").addClass("col-md-4 event");
+//                 var name = $("<h4>").text(currentEvent.name);
+//                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
+//                 var venue = $("<p>").text(currentEvent._embedded.venues[0].name);
+//                 var address = $("<p>").text("Address: " + currentEvent._embedded.venues[0].address.line1);
+//                 var date = $("<p>").text("Date: " + moment(currentEvent.dates.start.localDate, "YYYY-MM-DD").format("ddd, MMM Do YYYY"));
+//                 var time = $("<p>").text("Time: " + moment(currentEvent.dates.start.localTime, "HH:mm:ss").format("h:mm a"));
+//                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
+//                 $("#eventDisplay").append(eventBox);
 
-                if (i % 3 === 0 || i === 0) {
-                    var displayRow = $("<div>").addClass("row displayRow");
-                    $("#eventDisplay").append(displayRow);
-                    $(displayRow).append(eventBox);
-                    $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
-                } else {
-                    $(".displayRow").last().append(eventBox);
-                    $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
-                }
-            }
-            // Parse the response.
-            // Do other things.
-        },
-        error: function(xhr, status, err) {
-            // This time, we do not end up here!
-        }
-    });
-}
+//                 createMarker(json._embedded.events[i]);
+
+//                 if (i % 3 === 0 || i === 0) {
+//                     var displayRow = $("<div>").addClass("row displayRow");
+//                     $("#eventDisplay").append(displayRow);
+//                     $(displayRow).append(eventBox);
+//                     $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
+//                 } else {
+//                     $(".displayRow").last().append(eventBox);
+//                     $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
+//                 }
+//             }
+//             // Parse the response.
+//             // Do other things.
+//         },
+//         error: function(xhr, status, err) {
+//             // This time, we do not end up here!
+//         }
+//     });
+// }
 var queryUrl = "https://app.ticketmaster.com/discovery/v2/events.json?classificationName=music&dmaId=324&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
 var rootUrl = "https://app.ticketmaster.com/discovery/v2/events.json?countryCode=US&apikey=7sqW8HhAAt6C5NKHjGWtrnso0YJc7CQ3";
-var searchInput, geoCodedLocation;
+var searchInput;
 
 function clickHandler() {
     var contentString
@@ -362,28 +362,9 @@ function clickHandler() {
     });
 }
 
-function geoPointGenerator(searchLocation) {
-    
-    var geocoder = new google.maps.Geocoder();
-    geocoder.geocode({
-        'address': searchLocation
-    }, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-            var Lat = results[0].geometry.location.lat();
-            var Lng = results[0].geometry.location.lng();
-            searchLocation = "" + Lat + "," + Lng + "";
-            console.log("geoCodedLocation: " + searchLocation)
-            // Need to create one for each venue
-        } else {
-            alert("Something got wrong " + status);
-        }
-    });
 
-}
 
 function ajaxRequest(geoPoint) {
-    
-    var searchLocation = $("#location").val().trim();
 
     searchInput = $("#search").val().trim();
     category = $(".category").text().trim();
@@ -391,7 +372,7 @@ function ajaxRequest(geoPoint) {
         category = undefined;
     }
     // queryUrl = rootUrl + "&keyword=" + searchInput + "&geoPoint=" + geoPoint;
-    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&geoPoint=" + geoPoint + "&includeLicensedContent=yes" + "&radius=25";
+    queryUrl = rootUrl + "&keyword=" + searchInput + "&classificationName=" + category + "&geoPoint=" + geoPoint + "&includeLicensedContent=yes" + "&sort=distance,asc&size=100";
     console.log("SearchQuery: " + queryUrl)
     $.ajax({
         type: "GET",
@@ -402,14 +383,14 @@ function ajaxRequest(geoPoint) {
             console.log("yo")
             console.log(json)
             $("#eventDisplay").empty();
-            if(json._embedded === undefined){
+            if (json._embedded === undefined) {
                 var noResults = $("<h2>").text("Your search - " + searchInput + " - did not match any events");
                 $("#eventDisplay").append(noResults);
                 return;
             }
 
             for (i = 0; i < json._embedded.events.length; i++) {
-               
+
                 var eventLocation = json._embedded.events[i]._embedded.venues[0].location;
                 var eventObj = json._embedded.events;
                 var currentEvent = eventObj[i]
@@ -423,7 +404,7 @@ function ajaxRequest(geoPoint) {
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
                 $("#eventRow").append(eventBox);
 
-                 createMarker(json._embedded.events[i]);
+                createMarker(json._embedded.events[i]);
 
                 if (i % 3 === 0 || i === 0) {
                     var displayRow = $("<div>").addClass("row displayRow");
@@ -435,13 +416,7 @@ function ajaxRequest(geoPoint) {
                     $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
                 }
             }
-
-               // if(json._embedded.events.length === 0){
-               //      var noResults = $("<h2>").text("No results matching " + searchInput);
-               //      $("#eventDisplay").append(noResults);
-               //  }
-            // Parse the response.
-            // Do other things.
+ 
         },
         error: function(xhr, status, err) {
             // This time, we do not end up here!
@@ -453,7 +428,7 @@ function generateQuery() {
 
     event.preventDefault();
     changeMap();
-    
+
 }
 
 function changeCategory() {
@@ -464,11 +439,12 @@ function changeCategory() {
 }
 
 function changeMap() {
-    
+
     event.preventDefault();
     var address = $("#location").val().trim();
+    console.log("Address: " + address)
     if (address === "") {
-        address = "United States"
+        address = localStorage.getItem("geoPoint");
     }
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({
@@ -478,13 +454,14 @@ function changeMap() {
             var Lat = results[0].geometry.location.lat();
             var Lng = results[0].geometry.location.lng();
             var geoPoint = "" + Lat + "," + Lng + "";
+            console.log("geoPizzy: " + geoPoint)
             var myOptions = {
                 zoom: 10,
                 center: new google.maps.LatLng(Lat, Lng)
             };
             map = new google.maps.Map(
                 document.getElementById("map"), myOptions);
-            ajaxRequest(geoPoint);
+                ajaxRequest(geoPoint);
             // Need to create one for each venue
         } else {
             alert("Something got wrong " + status);
