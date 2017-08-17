@@ -511,7 +511,4 @@ $(document).ready(function() {
     //$(window).on("load"), geolocateQuery();
     $("#submit").on("click", generateQuery);
     $(".categoryOption").on("click", changeCategory);
-    $(".category").on("click", function() {
-        $(".categoryHeader").css("color", "#4b5159")
-    });
 });
