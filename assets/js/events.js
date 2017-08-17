@@ -285,10 +285,13 @@ function fillInAddress() {
 // });
 
 function createMarker(event) {
-
+    console.log(event)
     var eventLocation = event._embedded.venues[0].location;
+    // var directionsUrl = $("<a>").text(event._embedded.venues[0].address.line1).attr("target","_blank").attr("href", ;
+                              
+
     var infowindow = new google.maps.InfoWindow();
-    var contentString = event.name + "<br>" + event._embedded.venues[0].name;
+    var contentString =  "Venue: " + event._embedded.venues[0].name + "<br>" + "Event: " + event.name + "<br>" + event.distance + " Miles -- " + "<a target='_blank' href=" + "https://maps.google.co.uk/maps?saddr=" + localStorage.getItem("geoPoint") + "&daddr=" + event._embedded.venues[0].address.line1 + ">Directions to Venue</a>" + "<br>" + "<a href=" + event.url + ">" + event.url + "</a>" + "<br>" ;
     var marker = new google.maps.Marker({
         position: {
             lat: parseFloat(eventLocation.latitude),
@@ -399,6 +402,7 @@ function ajaxRequest(geoPoint) {
                 var image = $("<img>").addClass("eventImg").attr("src", currentEvent.images[5].url);
                 var venue = $("<p>").text(currentEvent._embedded.venues[0].name);
                 var address = $("<p>").text("Address: " + currentEvent._embedded.venues[0].address.line1);
+                var directionsUrl = $("<a>").text(currentEvent._embedded.venues[0].address.line1).attr("target","_blank").attr("href", "https://maps.google.co.uk/maps?saddr=" + localStorage.getItem("geoPoint") + "&daddr=" + currentEvent._embedded.venues[0].address.line1)
                 var date = $("<p>").text("Date: " + moment(currentEvent.dates.start.localDate, "YYYY-MM-DD").format("ddd, MMM Do YYYY"));
                 var time = $("<p>").text("Time: " + moment(currentEvent.dates.start.localTime, "HH:mm:ss").format("h:mm a"));
                 var eventUrl = $("<p>").html("<a target='_blank' href=" + currentEvent.url + ">Buy Tickets</a>");
@@ -410,10 +414,10 @@ function ajaxRequest(geoPoint) {
                     var displayRow = $("<div>").addClass("row displayRow");
                     $("#eventDisplay").append(displayRow);
                     $(displayRow).append(eventBox);
-                    $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
+                    $(eventBox).append(image, name, venue, directionsUrl, date, time, eventUrl, "<br>");
                 } else {
                     $(".displayRow").last().append(eventBox);
-                    $(eventBox).append(image, name, venue, address, date, time, eventUrl, "<br>");
+                    $(eventBox).append(image, name, venue, directionsUrl, date, time, eventUrl, "<br>");
                 }
             }
  
