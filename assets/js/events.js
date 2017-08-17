@@ -12,6 +12,8 @@ firebase.initializeApp(config);
 var database = firebase.database();
 var user = firebase.auth().currentUser;
 var infoWindow;
+var searchCounter = 0; 
+
 
 
 function registerUser() {
@@ -124,36 +126,142 @@ firebase.auth().onAuthStateChanged(function(user) {
       $("#logout").show();
       $("#lastSearch").show();
 
+       database.ref('users/' + firebase.auth().currentUser.uid).once("value", function(snapshot) {
+         searchCounter = snapshot.val().searchNumber; 
+         console.log(snapshot.val());
+         console.log("search counter on load is:" + searchCounter);
+
+        var userSearchDirectory = 'users/' + firebase.auth().currentUser.uid + '/recentSearch/';
+
+          database.ref(userSearchDirectory + searchCounter).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+         
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch0").text(sv.searchLocation); 
+            $("#lastSearch0").on("click", recentSearch);
+           
+          });
+
+          database.ref(userSearchDirectory + (searchCounter - 1)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+           
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch1").text(sv.searchLocation); 
+            $("#lastSearch1").on("click", recentSearch);
+
+          });
+
+           database.ref(userSearchDirectory + (searchCounter - 2)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+           
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch2").text(sv.searchLocation); 
+            $("#lastSearch2").on("click", recentSearch);
+
+          });
+
+      })
+
       //this stores last search data to a user specific folder on firebase
       $("#submit").on("click", function() {
-          var lastSearchItem = $("#search").val().trim(); 
-          var lastLocation = $("#location").val().trim(); 
+          var searchItem = $("#search").val().trim(); 
+          var searchLocation = $("#location").val().trim(); 
+          searchCounter++; 
+          console.log("Search counter now: " + searchCounter); 
 
+          var userSearchDirectory = 'users/' + firebase.auth().currentUser.uid + '/recentSearch/';
 
-          database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).push({
-          lastSearchItem: lastSearchItem,
-          lastLocation: lastLocation
+          database.ref(userSearchDirectory + searchCounter).update({
+          searchItem: searchItem,
+          searchLocation: searchLocation,
         })
+
+
+          database.ref('users/' + firebase.auth().currentUser.uid ).update({
+            searchNumber: searchCounter
+          })
+
+
+          database.ref(userSearchDirectory + searchCounter).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch0").text(sv.searchLocation); 
+            $("#lastSearch0").on("click", recentSearch);
+           
+          });
+
+          database.ref(userSearchDirectory + (searchCounter - 1)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch1").text(sv.searchLocation); 
+            $("#lastSearch1").on("click", recentSearch);
+
+          });
+
+           database.ref(userSearchDirectory + (searchCounter - 2)).once("value", function(snapshot) {       
+            var sv = snapshot.val(); 
+            console.log("location:" + sv.searchLocation); 
+            console.log(sv.searchItem); 
+
+            function recentSearch(event) {
+              event.preventDefault();
+              $("#location").val(sv.searchLocation); 
+              $("#search").val(sv.searchItem); 
+              generateQuery();
+            }
+
+            $("#lastSearch2").text(sv.searchLocation); 
+            $("#lastSearch2").on("click", recentSearch);
+
+          });
+
       });
 
-      database.ref(`users/${firebase.auth().currentUser.uid}/recentSearch`).on("child_added", function(snapshot) {
-        var sv = snapshot.val(); 
-        console.log(sv); 
-        //var secondLastSearch = sv.
-
-        function recentSearch(event) {
-          event.preventDefault();
-          $("#location").val(sv.lastLocation); 
-          $("#search").val(sv.lastSearchItem); 
-          generateQuery();
-        }
-
-        $("#lastSearch").text(sv.lastLocation); 
-        $("#lastSearch").on("click", recentSearch);
-        $("#secondLastSearch").text();
-
-
-      });
 
     } else {
         console.log("user not signed in");
