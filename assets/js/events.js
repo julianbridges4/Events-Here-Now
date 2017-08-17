@@ -287,16 +287,16 @@ function fillInAddress() {
     var place = autocomplete.getPlace();
 }
 //uses a json p callback ; 
-var oArgs = {
-    app_key: "RDpX8hD4VzsNsP63",
-    q: "music",
-    where: "San Diego",
-    page_size: 5,
-    sort_order: "popularity",
-};
-EVDB.API.call("/events/search", oArgs, function(oData) {
-    // Note: this relies on the custom toString() methods below
-});
+// var oArgs = {
+//     app_key: "RDpX8hD4VzsNsP63",
+//     q: "music",
+//     where: "San Diego",
+//     page_size: 5,
+//     sort_order: "popularity",
+// };
+// EVDB.API.call("/events/search", oArgs, function(oData) {
+//     // Note: this relies on the custom toString() methods below
+// });
 
 function createMarker(event) {
 
