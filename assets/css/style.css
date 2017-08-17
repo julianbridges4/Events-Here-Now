@@ -2,6 +2,10 @@
   background: #4e5660;
 }
 
+#lastSearch {
+	margin: 0px;
+}
+
 #brand {
   color: #eee;
 }
