@@ -22,6 +22,18 @@
     color: #b8bdc4;
 }
 
+.clearer {
+	pointer-events: auto;
+}
+
+#new-user {
+	color: #eee;
+}
+
+#new-user:hover {
+	color: #b8bdc4;
+}
+
 #mainRow {
     height: 80vh;
 }
@@ -49,7 +61,7 @@
 
 .eventImg {
   width:  100%;
-  height: 140px;
+  height: 150px;
 }
 
 #createUser-form {
